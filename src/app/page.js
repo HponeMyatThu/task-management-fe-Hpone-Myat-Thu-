@@ -1,65 +1,166 @@
-import Image from "next/image";
+"use client";
+
+import DataTable from "react-data-table-component";
+import { Container, Spinner } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Home() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get("http://localhost:3000/tasks");
+      setData(res.data);
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    {
+      name: "#",
+      selector: (row) => row.id,
+      sortable: true,
+      width: "70px",
+    },
+    {
+      name: "Title",
+      selector: (row) => row.title,
+      sortable: true,
+      width: "600px",
+    },
+    {
+      name: "Status",
+      sortable: true,
+      cell: (row) => {
+        const statusColor = {
+          todo: "secondary",
+          in_progress: "warning",
+          done: "success",
+        };
+
+        return (
+          <span
+            className={`badge bg-${statusColor[row.status] || "secondary"}`}
+          >
+            {row.status}
+          </span>
+        );
+      },
+      width: "100px",
+    },
+    {
+      name: "Priority",
+      sortable: true,
+      cell: (row) => {
+        const priorityColor = {
+          low: "info",
+          medium: "primary",
+          high: "danger",
+        };
+
+        return (
+          <span
+            className={`badge bg-${priorityColor[row.priority] || "secondary"}`}
+          >
+            {row.priority}
+          </span>
+        );
+      },
+      width: "100px",
+    },
+    {
+      name: "Due Date",
+      selector: (row) =>
+        row.dueDate ? new Date(row.dueDate).toLocaleDateString() : "-",
+    },
+  ];
+
+  const customStyles = {
+    headRow: {
+      style: {
+        backgroundColor: "#f8f9fa",
+        fontWeight: "600",
+        fontSize: "14px",
+      },
+    },
+    rows: {
+      style: {
+        minHeight: "50px",
+        "&:hover": {
+          backgroundColor: "#f8f9fa",
+        },
+      },
+    },
+    cells: {
+      style: {
+        "&:not(:last-of-type)": {
+          borderRight: "1px solid #e9ecef",
+        },
+      },
+    },
+    pagination: {
+      style: {
+        borderTopWidth: "1px",
+        borderTopColor: "#e9ecef",
+      },
+    },
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <Container>
+      {/* Page Header */}
+      <div className="row mt-3">
+        <div className="col-12">
+          <div className="page-title-box d-flex align-items-center justify-content-between">
+            <h4 className="mb-0">Task Management</h4>
+
+            <button
+              type="button"
+              className="btn btn-primary d-flex align-items-center gap-2"
+              data-bs-toggle="modal"
+              data-bs-target="#createTaskModal"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <i className="uil uil-plus"></i>
+              Create Task
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* Table */}
+      <div className="card shadow-sm mt-3">
+        <div className="card-body">
+          <DataTable
+            columns={columns}
+            data={data}
+            progressPending={loading}
+            progressComponent={
+              <div className="p-4 text-center">
+                <Spinner animation="border" />
+                <div className="mt-2">Loading tasks...</div>
+              </div>
+            }
+            pagination
+            noDataComponent={
+              <div className="p-4 text-center">
+                There are no records to display
+              </div>
+            }
+            customStyles={customStyles}
+            responsive
+          />
         </div>
-      </main>
-    </div>
+      </div>
+    </Container>
   );
 }
