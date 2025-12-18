@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { Toaster } from "react-hot-toast";
 
 export default async function LocaleLayout({ children }) {
   return (
@@ -33,7 +34,10 @@ export default async function LocaleLayout({ children }) {
         <link rel="shortcut icon" href="/assets/images/favicon.ico"></link>
       </head>
 
-      <body>{children}</body>
+      <body>
+        <Toaster />
+        {children}
+      </body>
 
       <Script src="/assets/libs/jquery/jquery.min.js"></Script>
       <Script src="/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></Script>
