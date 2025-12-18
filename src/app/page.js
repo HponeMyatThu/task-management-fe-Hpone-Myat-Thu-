@@ -23,7 +23,10 @@ export default function Home() {
     dueDate: getTodayDate(),
   });
 
-  const filteredData = data.filter(
+  const page = 1;
+  const perPage = 10;
+
+  const filteredData = data?.data?.filter(
     (task) =>
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -167,7 +170,7 @@ export default function Home() {
   const columns = [
     {
       name: "#",
-      selector: (row) => row.id,
+      cell: (_row, index) => (page - 1) * perPage + index + 1,
       sortable: true,
       width: "70px",
     },
@@ -203,7 +206,7 @@ export default function Home() {
         };
 
         return (
-          <div className="d-flex gap-1">
+          <div className="d-flex gap-1 pointer">
             {statusOptions.map((status) => (
               <span
                 key={status}
